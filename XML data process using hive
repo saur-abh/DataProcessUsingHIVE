@@ -1,0 +1,66 @@
+## Serde's provide the conversion of the semi-structured data into structured data.
+Serde mean Serialization and De-Serialization
+## Hive tool can not be provide the xml,json and html data process . If we want the external data process on xml ,json and html file so we using the hive serde.
+*****************************************XML File Data Process Using Hive********************************
+> Whenever we use the hive tool ,so firstly start the hadoop service
+	start-all.sh	//hadoop service start cmd.
+>Add xml serde jar in hive consol.
+	add jar hivexmlserde-1.0.5.3.jar; //add jar cmd in hive consol.
+>Before we create the table open the .xml file the check the column name after create the table.
+>Create Table in Hive cmd.
+/*******----------------------	create table xml_bank(
+  customer_id string,		//data type given in the .xml file it is seperated by the tags.
+  income bigint,
+  demographics map<string,string>,	//This tag contains the sub tag so we are using map<string, string> field
+  financial map<string,string>)
+ROW FORMAT SERDE 'com.ibm.spss.hive.serde2.xml.XmlSerDe'	//this link consider the hivexmlserde class file,it provide the supportability for load xml file into hive table.
+WITH SERDEPROPERTIES (
+"column.xpath.customer_id"="/record/@customer_id",		//it contain the property of columns name that we are using in given table. 
+"column.xpath.income"="/record/income/text()",
+"column.xpath.demographics"="/record/demographics/*",
+"column.xpath.financial"="/record/financial/*"
+)
+STORED AS 
+INPUTFORMAT 'com.ibm.spss.hive.serde2.xml.XmlInputFormat'	//it discribe the input file format in the given table.
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat'	//it convert the semi structured format into structured format in hive
+TBLPROPERTIES(
+"xmlinput.start"="<record customer",		//it choose the starting tag where the .xml file start and whera the data will end in the file .
+"xmlinput.end"="</record>"
+);           ---------------------------*****/
+
+>Load xml file data into the created table in hive terminal.
+	load data local inpath 'cust.xml' into table xml_bank;	//load data cmd for local system to hive .
+>If we load the xml data into the same table so the cmd is .
+	load data local inpath 'cust.xml' overwrite into table xml_bank;
+
+For Example:--
+
+select customer_id, income, demographics, financial from xml_bank limit 1; 	//it shows the top 3 row data.
+
+select customer_id, income ,demographics["gender"], financial from xml_bank ;	// it shows the demographics column's {sub cloumn} data with given column data. 
+
+************************************************Json File Data Process Using Hive****************************************
+>Add json serde jar in hive consol
+	add jar add jar /home/user-name/Desktop/hivexmlserde-1.0.5.3.jar;	//add jar cmd in hive consol
+>Before we create the table in hive firstly knowing the json column name that they are helping in table creation in hive. So firstly we are reformatter and validator the .json file with the help of jsonlint website "https://jsonlint.com/" view the column names and generate the schema.
+
+>Another way to create the schema of the json file with the help of this cmd using dependencies jar **this is provide the default jar path so we add only the adding jar path not other or generate jar,if we have the give jar so that is cool otherwise add the give serde jar path in the{ ROW FORMAT SERDE ' '}
+	java -jar json-hive-schema-1.0-jar-with-dependencies.jar doc.json table_name	//this cmd run on the linux terminal and after that this cmd generate the schema and copy the schema and past on the hive terminal.
+
+>Create the table in the hive 
+/***************	CREATE TABLE e_name (
+  product string,
+  version double,
+  releasedate string,
+  demo boolean,
+  person struct<dateofbirth:string, email:array<string>, id:int, name:string,phones:struct<home:string, mobile:string>,registered:boolean>
+  )
+ROW FORMAT SERDE 'com.cloudera.hive.serde.JSONSerDe';	//this path is adding jar file and it's provide the supportability for load json file into hive table.
+*****************************/
+>All steps are same as XML file ........
+
+********************HTML file data processing  usin Hive **********************
+
+Note :We can not process the html data so we are usin solr tool this tools convert html file into json ,xml,csv format and we can easly process the html data.
+
+
